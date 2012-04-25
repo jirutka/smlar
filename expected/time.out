@@ -1,0 +1,148 @@
+SELECT set_smlar_limit(0.6);
+ set_smlar_limit 
+-----------------
+             0.6
+(1 row)
+
+SELECT 
+	t,
+	ARRAY(
+		SELECT 
+			epoch2timestamp(v)::time
+		FROM
+			generate_series(1, t) as v
+	) AS v
+	INTO test_time
+FROM
+	generate_series(1, 200) as t;
+SELECT	t, smlar(v, to_tsp_array('{10,9,8,7,6,5,4,3,2,1}')::time[]) AS s FROM test_time WHERE v % to_tsp_array('{10,9,8,7,6,5,4,3,2,1}')::time[] ORDER BY s DESC, t;
+ t  |    s     
+----+----------
+ 10 |        1
+ 11 | 0.953463
+  9 | 0.948683
+ 12 | 0.912871
+  8 | 0.894427
+ 13 | 0.877058
+ 14 | 0.845154
+  7 |  0.83666
+ 15 | 0.816497
+ 16 | 0.790569
+  6 | 0.774597
+ 17 | 0.766965
+ 18 | 0.745356
+ 19 | 0.725476
+  5 | 0.707107
+ 20 | 0.707107
+ 21 | 0.690066
+ 22 |   0.6742
+ 23 |  0.65938
+ 24 | 0.645497
+  4 | 0.632456
+ 25 | 0.632456
+ 26 | 0.620174
+ 27 | 0.608581
+(24 rows)
+
+SELECT	t, smlar(v, to_tsp_array('{50,49,8,7,6,5,4,33,2,1}')::time[]) AS s FROM test_time WHERE v % to_tsp_array('{50,49,8,7,6,5,4,33,2,1}')::time[] ORDER BY s DESC, t;
+ t  |    s     
+----+----------
+  8 | 0.782624
+  9 | 0.737865
+  7 | 0.717137
+ 10 |      0.7
+ 11 | 0.667424
+  6 | 0.645497
+ 12 |  0.63901
+ 13 | 0.613941
+(8 rows)
+
+CREATE INDEX idx_test_time ON test_time USING gist (v _time_sml_ops);
+SET enable_seqscan=off;
+SELECT	t, smlar(v, to_tsp_array('{10,9,8,7,6,5,4,3,2,1}')::time[]) AS s FROM test_time WHERE v % to_tsp_array('{10,9,8,7,6,5,4,3,2,1}')::time[] ORDER BY s DESC, t;
+ t  |    s     
+----+----------
+ 10 |        1
+ 11 | 0.953463
+  9 | 0.948683
+ 12 | 0.912871
+  8 | 0.894427
+ 13 | 0.877058
+ 14 | 0.845154
+  7 |  0.83666
+ 15 | 0.816497
+ 16 | 0.790569
+  6 | 0.774597
+ 17 | 0.766965
+ 18 | 0.745356
+ 19 | 0.725476
+  5 | 0.707107
+ 20 | 0.707107
+ 21 | 0.690066
+ 22 |   0.6742
+ 23 |  0.65938
+ 24 | 0.645497
+  4 | 0.632456
+ 25 | 0.632456
+ 26 | 0.620174
+ 27 | 0.608581
+(24 rows)
+
+SELECT	t, smlar(v, to_tsp_array('{50,49,8,7,6,5,4,33,2,1}')::time[]) AS s FROM test_time WHERE v % to_tsp_array('{50,49,8,7,6,5,4,33,2,1}')::time[] ORDER BY s DESC, t;
+ t  |    s     
+----+----------
+  8 | 0.782624
+  9 | 0.737865
+  7 | 0.717137
+ 10 |      0.7
+ 11 | 0.667424
+  6 | 0.645497
+ 12 |  0.63901
+ 13 | 0.613941
+(8 rows)
+
+DROP INDEX idx_test_time;
+CREATE INDEX idx_test_time ON test_time USING gin (v _time_sml_ops);
+SELECT	t, smlar(v, to_tsp_array('{10,9,8,7,6,5,4,3,2,1}')::time[]) AS s FROM test_time WHERE v % to_tsp_array('{10,9,8,7,6,5,4,3,2,1}')::time[] ORDER BY s DESC, t;
+ t  |    s     
+----+----------
+ 10 |        1
+ 11 | 0.953463
+  9 | 0.948683
+ 12 | 0.912871
+  8 | 0.894427
+ 13 | 0.877058
+ 14 | 0.845154
+  7 |  0.83666
+ 15 | 0.816497
+ 16 | 0.790569
+  6 | 0.774597
+ 17 | 0.766965
+ 18 | 0.745356
+ 19 | 0.725476
+  5 | 0.707107
+ 20 | 0.707107
+ 21 | 0.690066
+ 22 |   0.6742
+ 23 |  0.65938
+ 24 | 0.645497
+  4 | 0.632456
+ 25 | 0.632456
+ 26 | 0.620174
+ 27 | 0.608581
+(24 rows)
+
+SELECT	t, smlar(v, to_tsp_array('{50,49,8,7,6,5,4,33,2,1}')::time[]) AS s FROM test_time WHERE v % to_tsp_array('{50,49,8,7,6,5,4,33,2,1}')::time[] ORDER BY s DESC, t;
+ t  |    s     
+----+----------
+  8 | 0.782624
+  9 | 0.737865
+  7 | 0.717137
+ 10 |      0.7
+ 11 | 0.667424
+  6 | 0.645497
+ 12 |  0.63901
+ 13 | 0.613941
+(8 rows)
+
+SET enable_seqscan=on;

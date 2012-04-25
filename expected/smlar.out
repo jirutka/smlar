@@ -1,0 +1,354 @@
+CREATE EXTENSION smlar;
+--sanity check
+SELECT 
+	opc.opcname, 
+	t.typname, 
+	opc.opcdefault  
+FROM 
+	pg_opclass opc, 
+	pg_am am, 
+	pg_type t, 
+	pg_type k 
+WHERE 
+	opc.opcmethod = am.oid AND 
+	am.amname='gist' AND 
+	opc.opcintype = t.oid AND 
+	opc.opckeytype = k.oid AND 
+	k.typname='gsmlsign'
+ORDER BY opc.opcname;
+       opcname        |   typname    | opcdefault 
+----------------------+--------------+------------
+ _bytea_sml_ops       | _bytea       | f
+ _char_sml_ops        | _char        | f
+ _cidr_sml_ops        | _cidr        | f
+ _date_sml_ops        | _date        | f
+ _float4_sml_ops      | _float4      | f
+ _float8_sml_ops      | _float8      | f
+ _inet_sml_ops        | _inet        | f
+ _int2_sml_ops        | _int2        | f
+ _int4_sml_ops        | _int4        | f
+ _int8_sml_ops        | _int8        | f
+ _interval_sml_ops    | _interval    | f
+ _macaddr_sml_ops     | _macaddr     | f
+ _numeric_sml_ops     | _numeric     | f
+ _oid_sml_ops         | _oid         | f
+ _text_sml_ops        | _text        | f
+ _time_sml_ops        | _time        | f
+ _timestamp_sml_ops   | _timestamp   | f
+ _timestamptz_sml_ops | _timestamptz | f
+ _timetz_sml_ops      | _timetz      | f
+ _varchar_sml_ops     | _varchar     | f
+(20 rows)
+
+SELECT 
+	opc.opcname, 
+	t.typname, 
+	opc.opcdefault  
+FROM 
+	pg_opclass opc, 
+	pg_am am, 
+	pg_type t
+WHERE 
+	opc.opcmethod = am.oid AND 
+	am.amname='gin' AND 
+	opc.opcintype = t.oid AND 
+	opc.opcname ~ '_sml_ops$'
+ORDER BY opc.opcname;
+       opcname        |   typname    | opcdefault 
+----------------------+--------------+------------
+ _bit_sml_ops         | _bit         | f
+ _bytea_sml_ops       | _bytea       | f
+ _char_sml_ops        | _char        | f
+ _cidr_sml_ops        | _cidr        | f
+ _date_sml_ops        | _date        | f
+ _float4_sml_ops      | _float4      | f
+ _float8_sml_ops      | _float8      | f
+ _inet_sml_ops        | _inet        | f
+ _int2_sml_ops        | _int2        | f
+ _int4_sml_ops        | _int4        | f
+ _int8_sml_ops        | _int8        | f
+ _interval_sml_ops    | _interval    | f
+ _macaddr_sml_ops     | _macaddr     | f
+ _money_sml_ops       | _money       | f
+ _numeric_sml_ops     | _numeric     | f
+ _oid_sml_ops         | _oid         | f
+ _text_sml_ops        | _text        | f
+ _time_sml_ops        | _time        | f
+ _timestamp_sml_ops   | _timestamp   | f
+ _timestamptz_sml_ops | _timestamptz | f
+ _timetz_sml_ops      | _timetz      | f
+ _varbit_sml_ops      | _varbit      | f
+ _varchar_sml_ops     | _varchar     | f
+(23 rows)
+
+SELECT 
+    trim( leading '_'  from t.typname ) || '[]' AS "Array Type",
+    gin.opcname AS "GIN operator class",
+    gist.opcname AS "GiST operator class"
+FROM
+    (
+        SELECT *
+        FROM
+            pg_catalog.pg_opclass,
+            pg_catalog.pg_am
+        WHERE
+            pg_opclass.opcmethod = pg_am.oid AND
+            pg_am.amname = 'gin' AND
+            pg_opclass.opcname ~ '_sml_ops$'
+    ) AS gin
+    FULL OUTER JOIN
+        (
+            SELECT *
+            FROM
+                pg_catalog.pg_opclass,
+                pg_catalog.pg_am
+            WHERE
+                pg_opclass.opcmethod = pg_am.oid AND
+                pg_am.amname = 'gist' AND
+                pg_opclass.opcname ~ '_sml_ops$'
+        ) AS gist
+        ON (
+            gist.opcname = gin.opcname AND 
+            gist.opcintype = gin.opcintype 
+        ),
+    pg_catalog.pg_type t
+WHERE
+    t.oid = COALESCE(gist.opcintype, gin.opcintype) AND
+    t.typarray = 0
+ORDER BY
+    "Array Type" ASC 
+;
+  Array Type   |  GIN operator class  | GiST operator class  
+---------------+----------------------+----------------------
+ bit[]         | _bit_sml_ops         | 
+ bytea[]       | _bytea_sml_ops       | _bytea_sml_ops
+ char[]        | _char_sml_ops        | _char_sml_ops
+ cidr[]        | _cidr_sml_ops        | _cidr_sml_ops
+ date[]        | _date_sml_ops        | _date_sml_ops
+ float4[]      | _float4_sml_ops      | _float4_sml_ops
+ float8[]      | _float8_sml_ops      | _float8_sml_ops
+ inet[]        | _inet_sml_ops        | _inet_sml_ops
+ int2[]        | _int2_sml_ops        | _int2_sml_ops
+ int4[]        | _int4_sml_ops        | _int4_sml_ops
+ int8[]        | _int8_sml_ops        | _int8_sml_ops
+ interval[]    | _interval_sml_ops    | _interval_sml_ops
+ macaddr[]     | _macaddr_sml_ops     | _macaddr_sml_ops
+ money[]       | _money_sml_ops       | 
+ numeric[]     | _numeric_sml_ops     | _numeric_sml_ops
+ oid[]         | _oid_sml_ops         | _oid_sml_ops
+ text[]        | _text_sml_ops        | _text_sml_ops
+ time[]        | _time_sml_ops        | _time_sml_ops
+ timestamp[]   | _timestamp_sml_ops   | _timestamp_sml_ops
+ timestamptz[] | _timestamptz_sml_ops | _timestamptz_sml_ops
+ timetz[]      | _timetz_sml_ops      | _timetz_sml_ops
+ varbit[]      | _varbit_sml_ops      | 
+ varchar[]     | _varchar_sml_ops     | _varchar_sml_ops
+(23 rows)
+
+SELECT set_smlar_limit(0.1);
+ set_smlar_limit 
+-----------------
+             0.1
+(1 row)
+
+SET smlar.threshold = 0.6;
+--First checks
+SELECT smlar('{3,2}'::int[], '{3,2,1}');
+  smlar   
+----------
+ 0.816497
+(1 row)
+
+SELECT smlar('{2,1}'::int[], '{3,2,1}');
+  smlar   
+----------
+ 0.816497
+(1 row)
+
+SELECT smlar('{}'::int[], '{3,2,1}');
+ smlar 
+-------
+     0
+(1 row)
+
+SELECT smlar('{12,10}'::int[], '{3,2,1}');
+ smlar 
+-------
+     0
+(1 row)
+
+SELECT smlar('{123}'::int[], '{}');
+ smlar 
+-------
+     0
+(1 row)
+
+SELECT smlar('{1,4,6}'::int[], '{1,4,6}');
+ smlar 
+-------
+     1
+(1 row)
+
+SELECT smlar('{1,4,6}'::int[], '{6,4,1}');
+ smlar 
+-------
+     1
+(1 row)
+
+SELECT smlar('{1,4,6}'::int[], '{5,4,6}');
+  smlar   
+----------
+ 0.666667
+(1 row)
+
+SELECT smlar('{1,4,6}'::int[], '{5,4,6}');
+  smlar   
+----------
+ 0.666667
+(1 row)
+
+SELECT smlar('{1,2}'::int[], '{2,2,2,2,2,1}');
+ smlar 
+-------
+     1
+(1 row)
+
+SELECT smlar('{1,2}'::int[], '{1,2,2,2,2,2}');
+ smlar 
+-------
+     1
+(1 row)
+
+SELECT smlar('{}'::int[], '{3}');
+ smlar 
+-------
+     0
+(1 row)
+
+SELECT smlar('{3}'::int[], '{3}');
+ smlar 
+-------
+     1
+(1 row)
+
+SELECT smlar('{2}'::int[], '{3}');
+ smlar 
+-------
+     0
+(1 row)
+
+SELECT smlar('{1,4,6}'::int[], '{5,4,6}', 'N.i / (N.a + N.b)' );
+  smlar   
+----------
+ 0.333333
+(1 row)
+
+SELECT smlar('{1,4,6}'::int[], '{5,4,6}', 'N.i / sqrt(N.a * N.b)' );
+  smlar   
+----------
+ 0.666667
+(1 row)
+
+SELECT tsvector2textarray('qwe:12 asd:45');
+ tsvector2textarray 
+--------------------
+ {asd,qwe}
+(1 row)
+
+SELECT array_unique('{12,12,1,4,1,16}'::int4[]);
+ array_unique 
+--------------
+ {1,4,12,16}
+(1 row)
+
+SELECT array_unique('{12,12,1,4,1,16}'::bigint[]);
+ array_unique 
+--------------
+ {1,4,12,16}
+(1 row)
+
+SELECT array_unique('{12,12,1,4,1,16}'::smallint[]);
+ array_unique 
+--------------
+ {1,4,12,16}
+(1 row)
+
+SELECT array_unique('{12,12,1,4,1,16}'::text[]);
+ array_unique 
+--------------
+ {1,12,16,4}
+(1 row)
+
+SELECT array_unique('{12,12,1,4,1,16}'::varchar[]);
+ array_unique 
+--------------
+ {1,12,16,4}
+(1 row)
+
+SELECT inarray('{12,12,1,4,1,16}'::int[], 13::int);
+ inarray 
+---------
+       0
+(1 row)
+
+SELECT inarray('{12,12,1,4,1,16}'::int[], 12::int);
+ inarray 
+---------
+       1
+(1 row)
+
+SELECT inarray('{12,12,1,4,1,16}'::text[], 13::text);
+ inarray 
+---------
+       0
+(1 row)
+
+SELECT inarray('{12,12,1,4,1,16}'::text[], 12::text);
+ inarray 
+---------
+       1
+(1 row)
+
+SELECT inarray('{12,12,1,4,1,16}'::int[], 13::int, 0.9, 0.1);
+ inarray 
+---------
+     0.1
+(1 row)
+
+SELECT inarray('{12,12,1,4,1,16}'::int[], 12::int, 0.9, 0.1);
+ inarray 
+---------
+     0.9
+(1 row)
+
+SELECT inarray('{12,12,1,4,1,16}'::text[], 13::text, 0.9, 0.1);
+ inarray 
+---------
+     0.1
+(1 row)
+
+SELECT inarray('{12,12,1,4,1,16}'::text[], 12::text, 0.9, 0.1);
+ inarray 
+---------
+     0.9
+(1 row)
+
+--testing function
+CREATE OR REPLACE FUNCTION epoch2timestamp(int4)
+RETURNS timestamp AS $$
+    SELECT ('1970-01-01 00:00:00'::timestamp +   ( ($1*3600*24 + $1) ::text || ' seconds' )::interval)::timestamp;
+	$$ LANGUAGE SQL RETURNS NULL ON NULL INPUT IMMUTABLE;
+CREATE OR REPLACE FUNCTION to_tsp_array(_int4)
+RETURNS _timestamp AS $$
+	SELECT ARRAY( 
+		SELECT 
+			epoch2timestamp( $1[n] )
+		FROM
+			generate_series( 1, array_upper( $1, 1) - array_lower( $1, 1 ) + 1 ) AS n
+	);
+	$$ LANGUAGE SQL RETURNS NULL ON NULL INPUT IMMUTABLE;
+CREATE OR REPLACE FUNCTION array_to_col(anyarray)
+RETURNS SETOF anyelement AS
+$$
+    SELECT $1[n] FROM generate_series( 1, array_upper( $1, 1) - array_lower( $1, 1 ) + 1 ) AS n;
+$$ LANGUAGE SQL RETURNS NULL ON NULL INPUT IMMUTABLE;

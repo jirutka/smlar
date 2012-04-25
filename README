@@ -1,0 +1,116 @@
+float4 smlar(anyarray, anyarray)
+	- computes similary of two arrays. Arrays should be the same type.
+
+float4 smlar(anyarray, anyarray, bool useIntersect)
+	-  computes similary of two arrays of composite types. Composite type looks like:
+		CREATE TYPE type_name AS (element_name anytype, weight_name FLOAT4);
+	   useIntersect option points to use only intersected elements in denominator
+	   see an exmaples in sql/composite_int4.sql or sql/composite_text.sql
+
+float4 smlar( anyarray a, anyarray b, text formula );
+	- computes similary of two arrays by given formula, arrays should 
+	be the same type. 
+	Predefined variables in formula:
+	  N.i	- number of common elements in both array (intersection)
+	  N.a   - number of uniqueelements in first array
+	  N.b   - number of uniqueelements in second array
+	Example:
+	smlar('{1,4,6}'::int[], '{5,4,6}' )
+	smlar('{1,4,6}'::int[], '{5,4,6}', 'N.i / sqrt(N.a * N.b)' )
+	That calls are equivalent.
+
+anyarray % anyarray
+	- returns true if similarity of that arrays is greater than limit
+
+float4 show_smlar_limit()  - deprecated
+	- shows the limit for % operation
+
+float4 set_smlar_limit(float4) - deprecated
+	- sets the limit for % operation
+
+Use instead of show_smlar_limit/set_smlar_limit GUC variable 
+smlar.threshold (see below)
+
+
+text[] tsvector2textarray(tsvector)
+	- transforms tsvector type to text array
+
+anyarray array_unique(anyarray)
+	- sort and unique array
+
+float4 inarray(anyarray, anyelement)
+	- returns zero if second argument does not present in a first one
+	  and 1.0 in opposite case
+
+float4 inarray(anyarray, anyelement, float4, float4)
+	- returns fourth argument if second argument does not present in 
+	  a first one and third argument in opposite case
+
+GUC configuration variables:
+
+smlar.threshold  FLOAT
+	Array's with similarity lower than threshold are not similar 
+	by % operation
+
+smlar.persistent_cache BOOL
+	Cache of global stat is stored in transaction-independent memory
+
+smlar.type  STRING
+	Type of similarity formula: cosine(default), tfidf, overlap
+
+smlar.stattable	STRING
+	Name of table stored set-wide statistic. Table should be 
+	defined as
+	CREATE TABLE table_name (
+		value   data_type UNIQUE,
+		ndoc    int4 (or bigint)  NOT NULL CHECK (ndoc>0)
+	);
+	And row with null value means total number of documents.
+	See an examples in sql/*g.sql files
+	Note: used on for smlar.type = 'tfidf'
+
+smlar.tf_method STRING
+	Calculation method for term frequency. Values:
+		"n"     - simple counting of entries (default)
+		"log"   - 1 + log(n)
+		"const" - TF is equal to 1
+	Note: used on for smlar.type = 'tfidf'
+
+smlar.idf_plus_one BOOL
+	If false (default), calculate idf as log(d/df),
+	if true - as log(1+d/df)
+	Note: used on for smlar.type = 'tfidf'
+
+Module provides several GUC variables smlar.threshold, it's highly
+recommended to add to postgesql.conf:
+custom_variable_classes = 'smlar'       # list of custom variable class names
+smlar.threshold = 0.6  #or any other value > 0 and < 1
+and other smlar.* variables
+
+GiST/GIN support for % and  && operations for:
+  Array Type   |  GIN operator class  | GiST operator class  
+---------------+----------------------+----------------------
+ bit[]         | _bit_sml_ops         | 
+ bytea[]       | _bytea_sml_ops       | _bytea_sml_ops
+ char[]        | _char_sml_ops        | _char_sml_ops
+ cidr[]        | _cidr_sml_ops        | _cidr_sml_ops
+ date[]        | _date_sml_ops        | _date_sml_ops
+ float4[]      | _float4_sml_ops      | _float4_sml_ops
+ float8[]      | _float8_sml_ops      | _float8_sml_ops
+ inet[]        | _inet_sml_ops        | _inet_sml_ops
+ int2[]        | _int2_sml_ops        | _int2_sml_ops
+ int4[]        | _int4_sml_ops        | _int4_sml_ops
+ int8[]        | _int8_sml_ops        | _int8_sml_ops
+ interval[]    | _interval_sml_ops    | _interval_sml_ops
+ macaddr[]     | _macaddr_sml_ops     | _macaddr_sml_ops
+ money[]       | _money_sml_ops       | 
+ numeric[]     | _numeric_sml_ops     | _numeric_sml_ops
+ oid[]         | _oid_sml_ops         | _oid_sml_ops
+ text[]        | _text_sml_ops        | _text_sml_ops
+ time[]        | _time_sml_ops        | _time_sml_ops
+ timestamp[]   | _timestamp_sml_ops   | _timestamp_sml_ops
+ timestamptz[] | _timestamptz_sml_ops | _timestamptz_sml_ops
+ timetz[]      | _timetz_sml_ops      | _timetz_sml_ops
+ varbit[]      | _varbit_sml_ops      | 
+ varchar[]     | _varchar_sml_ops     | _varchar_sml_ops
+

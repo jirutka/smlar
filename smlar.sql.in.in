@@ -1,0 +1,713 @@
+SET search_path = public;
+
+CREATE OR REPLACE FUNCTION smlar(anyarray, anyarray)
+	RETURNS	float4
+	AS	'MODULE_PATHNAME', 'arraysml'
+	LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION smlar(anyarray, anyarray, bool)
+	RETURNS	float4
+	AS	'MODULE_PATHNAME', 'arraysmlw'
+	LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION smlar(anyarray, anyarray, text)
+    RETURNS float4
+	AS  'MODULE_PATHNAME', 'arraysml_func'
+	LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION set_smlar_limit(float4)
+	RETURNS float4
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C STRICT VOLATILE;
+
+CREATE OR REPLACE FUNCTION show_smlar_limit()
+	RETURNS float4
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C STRICT STABLE;
+
+CREATE OR REPLACE FUNCTION smlar_op(anyarray,anyarray)
+	RETURNS bool
+	AS 'MODULE_PATHNAME', 'arraysml_op'
+	LANGUAGE C STRICT STABLE;
+
+CREATE OPERATOR % (
+	LEFTARG = anyarray,
+	RIGHTARG = anyarray,
+	PROCEDURE = smlar_op,
+	COMMUTATOR = '%',
+	RESTRICT = contsel,
+	JOIN = contjoinsel
+);
+
+--
+
+CREATE OR REPLACE FUNCTION tsvector2textarray(tsvector)
+	RETURNS	_text
+	AS 'MODULE_PATHNAME', 'tsvector2textarray'
+	LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION array_unique(anyarray)
+	RETURNS	anyarray
+	AS	'MODULE_PATHNAME', 'array_unique'
+	LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION inarray(anyarray, anyelement)
+	RETURNS	float4
+	AS	'MODULE_PATHNAME', 'inarray'
+	LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION inarray(anyarray, anyelement, float4, float4)
+	RETURNS	float4
+	AS	'MODULE_PATHNAME', 'inarray'
+	LANGUAGE C STRICT IMMUTABLE;
+
+--gist key
+
+CREATE OR REPLACE FUNCTION gsmlsign_in(cstring)
+	RETURNS gsmlsign
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C STRICT;
+
+CREATE OR REPLACE FUNCTION gsmlsign_out(gsmlsign)
+	RETURNS cstring
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C STRICT;
+
+CREATE TYPE gsmlsign (
+	INTERNALLENGTH = -1,
+	INPUT = gsmlsign_in,
+	OUTPUT = gsmlsign_out
+);
+
+-- support functions for gist
+CREATE OR REPLACE FUNCTION gsmlsign_consistent(gsmlsign,internal,int4)
+	RETURNS bool
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION gsmlsign_compress(internal)
+	RETURNS internal
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION gsmlsign_decompress(internal)
+	RETURNS internal
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION gsmlsign_penalty(internal,internal,internal)
+	RETURNS internal
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION gsmlsign_picksplit(internal, internal)
+	RETURNS internal
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION gsmlsign_union(bytea, internal)
+	RETURNS _int4
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION gsmlsign_same(gsmlsign, gsmlsign, internal)
+	RETURNS internal
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C IMMUTABLE;
+
+--create the operator classes for gist
+
+CREATE OPERATOR CLASS _int2_sml_ops
+FOR TYPE _int2 USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _int4_sml_ops
+FOR TYPE _int4 USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _int8_sml_ops
+FOR TYPE _int8 USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _float4_sml_ops
+FOR TYPE _float4 USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _float8_sml_ops
+FOR TYPE _float8 USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+-- money type hasn't hash support
+--CREATE OPERATOR CLASS _money_sml_ops
+--FOR TYPE _money USING gist
+--AS
+--	OPERATOR	1	&& (anyarray, anyarray),
+--	OPERATOR	2	% (anyarray, anyarray),
+--	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+--	FUNCTION	2	gsmlsign_union (bytea, internal),
+--	FUNCTION	3	gsmlsign_compress (internal),
+--	FUNCTION	4	gsmlsign_decompress (internal),
+--	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+--	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+--	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+--STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _oid_sml_ops
+FOR TYPE _oid USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _timestamp_sml_ops
+FOR TYPE _timestamp USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _timestamptz_sml_ops
+FOR TYPE _timestamptz USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _time_sml_ops
+FOR TYPE _time USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _timetz_sml_ops
+FOR TYPE _timetz USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _date_sml_ops
+FOR TYPE _date USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _interval_sml_ops
+FOR TYPE _interval USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _macaddr_sml_ops
+FOR TYPE _macaddr USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _inet_sml_ops
+FOR TYPE _inet USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _cidr_sml_ops
+FOR TYPE _cidr USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _text_sml_ops
+FOR TYPE _text USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _varchar_sml_ops
+FOR TYPE _varchar USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _char_sml_ops
+FOR TYPE _char USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _bytea_sml_ops
+FOR TYPE _bytea USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+--no hash 
+--CREATE OPERATOR CLASS _bit_sml_ops
+--FOR TYPE _bit USING gist
+--AS
+--	OPERATOR	1	&& (anyarray, anyarray),
+--	OPERATOR	2	% (anyarray, anyarray),
+--	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+--	FUNCTION	2	gsmlsign_union (bytea, internal),
+--	FUNCTION	3	gsmlsign_compress (internal),
+--	FUNCTION	4	gsmlsign_decompress (internal),
+--	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+--	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+--	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+--STORAGE         gsmlsign;
+
+--CREATE OPERATOR CLASS _varbit_sml_ops
+--FOR TYPE _varbit USING gist
+--AS
+--	OPERATOR	1	&& (anyarray, anyarray),
+--	OPERATOR	2	% (anyarray, anyarray),
+--	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+--	FUNCTION	2	gsmlsign_union (bytea, internal),
+--	FUNCTION	3	gsmlsign_compress (internal),
+--	FUNCTION	4	gsmlsign_decompress (internal),
+--	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+--	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+--	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+--STORAGE         gsmlsign;
+
+CREATE OPERATOR CLASS _numeric_sml_ops
+FOR TYPE _numeric USING gist
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	% (anyarray, anyarray),
+	FUNCTION	1	gsmlsign_consistent (gsmlsign, internal, int4),
+	FUNCTION	2	gsmlsign_union (bytea, internal),
+	FUNCTION	3	gsmlsign_compress (internal),
+	FUNCTION	4	gsmlsign_decompress (internal),
+	FUNCTION	5	gsmlsign_penalty (internal, internal, internal),
+	FUNCTION	6	gsmlsign_picksplit (internal, internal),
+	FUNCTION	7	gsmlsign_same (gsmlsign, gsmlsign, internal),
+STORAGE         gsmlsign;
+
+--gin support functions
+CREATE OR REPLACE FUNCTION smlararrayextract(anyarray, internal)
+	RETURNS internal
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION smlarqueryarrayextract(anyarray, internal, internal)
+	RETURNS internal
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION smlararrayconsistent(internal, internal, anyarray)
+	RETURNS internal
+	AS 'MODULE_PATHNAME'
+	LANGUAGE C IMMUTABLE;
+
+--gin opclasses
+
+CREATE OPERATOR CLASS _int2_sml_ops
+FOR TYPE _int2	USING gin
+AS
+	OPERATOR	1	&& (anyarray, anyarray),
+	OPERATOR	2	%  (anyarray, anyarray),
+	FUNCTION	1	btint2cmp(int2,int2),
+	FUNCTION	2	smlararrayextract(anyarray, internal),
+	FUNCTION	3	smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION	4	smlararrayconsistent(internal, internal, anyarray),
+	STORAGE		int2;
+CREATE OPERATOR CLASS _int4_sml_ops
+FOR TYPE _int4  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   btint4cmp(int4,int4),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     int4;
+
+CREATE OPERATOR CLASS _int8_sml_ops
+FOR TYPE _int8  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   btint8cmp(int8,int8),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     int8;
+
+CREATE OPERATOR CLASS _float4_sml_ops
+FOR TYPE _float4  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   btfloat4cmp(float4,float4),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     float4;
+
+CREATE OPERATOR CLASS _float8_sml_ops
+FOR TYPE _float8  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   btfloat8cmp(float8,float8),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     float8;
+
+CREATE OPERATOR CLASS _money_sml_ops
+FOR TYPE _money  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   cash_cmp(money,money),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     money;
+
+CREATE OPERATOR CLASS _oid_sml_ops
+FOR TYPE _oid  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   btoidcmp(oid,oid),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     oid;
+
+CREATE OPERATOR CLASS _timestamp_sml_ops
+FOR TYPE _timestamp  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   timestamp_cmp(timestamp,timestamp),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     timestamp;
+
+CREATE OPERATOR CLASS _timestamptz_sml_ops
+FOR TYPE _timestamptz  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   timestamptz_cmp(timestamptz,timestamptz),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     timestamptz;
+
+CREATE OPERATOR CLASS _time_sml_ops
+FOR TYPE _time  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   time_cmp(time,time),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     time;
+
+CREATE OPERATOR CLASS _timetz_sml_ops
+FOR TYPE _timetz  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   timetz_cmp(timetz,timetz),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     timetz;
+
+CREATE OPERATOR CLASS _date_sml_ops
+FOR TYPE _date  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   date_cmp(date,date),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     date;
+
+CREATE OPERATOR CLASS _interval_sml_ops
+FOR TYPE _interval  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   interval_cmp(interval,interval),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     interval;
+
+CREATE OPERATOR CLASS _macaddr_sml_ops
+FOR TYPE _macaddr  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   macaddr_cmp(macaddr,macaddr),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     macaddr;
+
+CREATE OPERATOR CLASS _inet_sml_ops
+FOR TYPE _inet  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   network_cmp(inet,inet),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     inet;
+
+CREATE OPERATOR CLASS _cidr_sml_ops
+FOR TYPE _cidr  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   network_cmp(inet,inet),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     cidr;
+
+CREATE OPERATOR CLASS _text_sml_ops
+FOR TYPE _text  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   bttextcmp(text,text),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     text;
+
+CREATE OPERATOR CLASS _varchar_sml_ops
+FOR TYPE _varchar  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   bttextcmp(text,text),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     varchar;
+
+CREATE OPERATOR CLASS _char_sml_ops
+FOR TYPE "_char"  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   btcharcmp("char","char"),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     "char";
+
+CREATE OPERATOR CLASS _bytea_sml_ops
+FOR TYPE _bytea  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   byteacmp(bytea,bytea),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     bytea;
+
+CREATE OPERATOR CLASS _bit_sml_ops
+FOR TYPE _bit  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   bitcmp(bit,bit),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     bit;
+
+CREATE OPERATOR CLASS _varbit_sml_ops
+FOR TYPE _varbit  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   varbitcmp(varbit,varbit),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     varbit;
+
+CREATE OPERATOR CLASS _numeric_sml_ops
+FOR TYPE _numeric  USING gin
+AS
+    OPERATOR    1   && (anyarray, anyarray),
+	OPERATOR    2   %  (anyarray, anyarray),
+	FUNCTION    1   numeric_cmp(numeric,numeric),
+	FUNCTION    2   smlararrayextract(anyarray, internal),
+	FUNCTION    3   smlarqueryarrayextract(anyarray, internal, internal),
+	FUNCTION    4   smlararrayconsistent(internal, internal, anyarray),
+	STORAGE     numeric;
+

@@ -1,0 +1,5 @@
+comment = 'compute similary of any one-dimensional arrays'
+default_version = '1.0'
+module_pathname = '$libdir/smlar'
+relocatable = true
+
