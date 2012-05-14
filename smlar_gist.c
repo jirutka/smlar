@@ -1210,7 +1210,7 @@ gsmlsign_consistent(PG_FUNCTION_ARGS)
 						for(i=0; i<s->nelems; i++)
 							count += GETBIT(sign, HASHVAL(s->hash[i]));
 				
-						if ( s->nelems == count  || ((double)count) / ((double)(s->nelems)) >= GetSmlarLimit() )
+						if ( s->nelems == count  || sqrt(((double)count) / ((double)(s->nelems))) >= GetSmlarLimit() )
 							res = true;
 					}
 					break;
