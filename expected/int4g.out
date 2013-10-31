@@ -12,7 +12,6 @@ CREATE TABLE int4_stat (
     value   int4 UNIQUE,
 	ndoc    int4 NOT NULL CHECK (ndoc>0)
 );
-NOTICE:  CREATE TABLE / UNIQUE will create implicit index "int4_stat_value_key" for table "int4_stat"
 INSERT INTO int4_stat (
     SELECT
 		q.w,

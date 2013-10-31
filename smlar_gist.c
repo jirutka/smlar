@@ -105,15 +105,15 @@ compareint(const void *va, const void *vb)
 }
 
 /*
- * Removes duplicates from an array of int4. 'l' is
+ * Removes duplicates from an array of int32. 'l' is
  * size of the input array. Returns the new size of the array.
  */
 static int
-uniqueint(uint32 *a, int4 l, int4 *max)
+uniqueint(uint32 *a, int32 l, int32 *max)
 {
 	uint32      *ptr,
 			   *res;
-	int4	   cnt = 0;
+	int32	   cnt = 0;
 
 	*max = 1;
 
@@ -149,7 +149,7 @@ Array2HashedArray(ProcTypeInfo info, ArrayType *a)
 {
 	SimpleArray *s = Array2SimpleArray(info, a);
 	SmlSign		*sign;
-	int4		len, i;
+	int32		len, i;
 	uint32		*ptr;
 
 	len = CALCGTSIZE( ARRKEY, s->nelems );
@@ -198,7 +198,7 @@ HashedElemCmp(const void *va, const void *vb)
 }
 
 static int
-uniqueHashedElem(HashedElem *a, int4 l)
+uniqueHashedElem(HashedElem *a, int32 l)
 {
 	HashedElem      *ptr,
 			 		  *res;
@@ -324,7 +324,7 @@ hasHashedElem(SmlSign  *a, uint32 h)
 static void
 makesign(BITVECP sign, SmlSign	*a)
 {
-	int4	i;
+	int32	i;
 	uint32	*ptr = GETARR(a);
 
 	MemSet((void *) sign, 0, sizeof(BITVEC));
@@ -334,10 +334,10 @@ makesign(BITVECP sign, SmlSign	*a)
 		HASH(sign, ptr[i]);
 }
 
-static int4
+static int32
 sizebitvec(BITVECP sign)
 {
-	int4	size = 0,
+	int32	size = 0,
 			i;
 
 	LOOPBYTE
@@ -391,8 +391,8 @@ gsmlsign_compress(PG_FUNCTION_ARGS)
 
 		if ( sign->size == SIGLENBIT )
 		{
-			int4 	len = CALCGTSIZE(SIGNKEY | ALLISTRUE, 0);
-			int4	maxrepeat = sign->maxrepeat;
+			int32 	len = CALCGTSIZE(SIGNKEY | ALLISTRUE, 0);
+			int32	maxrepeat = sign->maxrepeat;
 
 			sign = (SmlSign *) palloc(len);
 			SET_VARSIZE(sign, len);
@@ -439,7 +439,7 @@ gsmlsign_decompress(PG_FUNCTION_ARGS)
 static bool
 unionkey(BITVECP sbase, SmlSign *add)
 {
-	int4	i;
+	int32	i;
 
 	if (ISSIGNKEY(add))
 	{
@@ -470,10 +470,10 @@ gsmlsign_union(PG_FUNCTION_ARGS)
 	GistEntryVector *entryvec = (GistEntryVector *) PG_GETARG_POINTER(0);
 	int        *size = (int *) PG_GETARG_POINTER(1);
 	BITVEC      base;
-	int4		i,
+	int32		i,
 				len,
 				maxrepeat = 1;
-	int4        flag = 0;
+	int32		flag = 0;
 	SmlSign	   *result;
 
 	MemSet((void *) base, 0, sizeof(BITVEC));
@@ -534,7 +534,7 @@ gsmlsign_same(PG_FUNCTION_ARGS)
 		}
 		else
 		{
-			int4	i;
+			int32	i;
 			BITVECP	sa = GETSIGN(a),
 					sb = GETSIGN(b);
 
@@ -557,7 +557,7 @@ gsmlsign_same(PG_FUNCTION_ARGS)
 	{
 		uint32	*ptra = GETARR(a),
 				*ptrb = GETARR(b);
-		int4	i;
+		int32	i;
 
 		*result = true;
 		for (i = 0; i < a->size; i++)
@@ -671,7 +671,7 @@ fillcache(CACHESIGN *item, SmlSign *key)
 typedef struct
 {
 	OffsetNumber pos;
-	int4        cost;
+	int32        cost;
 } SPLITCOST;
 
 static int
@@ -715,11 +715,11 @@ gsmlsign_picksplit(PG_FUNCTION_ARGS)
 				*datum_r;
 	BITVECP     union_l,
 				union_r;
-	int4        size_alpha,
+	int32       size_alpha,
 				size_beta;
-	int4        size_waste,
+	int32       size_waste,
 				waste = -1;
-	int4        nbytes;
+	int32       nbytes;
 	OffsetNumber seed_1 = 0,
 				seed_2 = 0;
 	OffsetNumber *left,
@@ -939,7 +939,7 @@ gsmlsign_consistent(PG_FUNCTION_ARGS)
 	int				res = false;
 	SmlSign			*query;
 	SimpleArray		*s;
-	int4			i;
+	int32			i;
 
 	fcinfo->flinfo->fn_extra = SearchArrayCache(
 									fcinfo->flinfo->fn_extra,
@@ -1107,7 +1107,7 @@ gsmlsign_consistent(PG_FUNCTION_ARGS)
 	else
 	{	/* signature */
 		BITVECP sign = GETSIGN(key);
-		int4	count = 0;
+		int32	count = 0;
 
 		fillHashVal(fcinfo->flinfo->fn_extra, s);
 

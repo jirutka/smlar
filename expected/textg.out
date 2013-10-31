@@ -12,7 +12,6 @@ CREATE TABLE text_stat (
     value   text UNIQUE,
 	ndoc    int4 NOT NULL CHECK (ndoc>0)
 );
-NOTICE:  CREATE TABLE / UNIQUE will create implicit index "text_stat_value_key" for table "text_stat"
 INSERT INTO text_stat (
     SELECT
 		q.w,
