@@ -22,6 +22,12 @@
 
 PG_MODULE_MAGIC;
 
+#if (PG_VERSION_NUM >= 90400)
+#define SNAPSHOT NULL
+#else
+#define SNAPSHOT SnapshotNow
+#endif
+
 static Oid
 getDefaultOpclass(Oid amoid, Oid typid) 
 {
@@ -40,7 +46,7 @@ getDefaultOpclass(Oid amoid, Oid typid)
 
 	scan = systable_beginscan(heapRel, 
 								OpclassAmNameNspIndexId, true, 
-								SnapshotNow, 1, &skey);
+								SNAPSHOT, 1, &skey);
 
 	while (HeapTupleIsValid((tuple = systable_getnext(scan))))
 	{
@@ -132,7 +138,7 @@ getAMProc(Oid amoid, Oid typid)
 #endif
 
 	scan = systable_beginscan(heapRel, AccessMethodProcedureIndexId, true,
-								SnapshotNow, 
+								SNAPSHOT, 
 #if PG_VERSION_NUM >= 90200
 								4,
 #else
