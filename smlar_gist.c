@@ -34,17 +34,17 @@ typedef char *BITVECP;
 #define HASHVAL(val) (((unsigned int)(val)) % SIGLENBIT)
 #define HASH(sign, val) SETBIT((sign), HASHVAL(val))
 
-#define ARRKEY          0x01
-#define SIGNKEY         0x02
-#define ALLISTRUE       0x04
+#define ARRKEY			0x01
+#define SIGNKEY			0x02
+#define ALLISTRUE		0x04
 
-#define ISARRKEY(x) ( ((SmlSign*)x)->flag & ARRKEY )
-#define ISSIGNKEY(x)    ( ((SmlSign*)x)->flag & SIGNKEY )
-#define ISALLTRUE(x)    ( ((SmlSign*)x)->flag & ALLISTRUE )
+#define ISARRKEY(x)		( ((SmlSign*)x)->flag & ARRKEY )
+#define ISSIGNKEY(x)	( ((SmlSign*)x)->flag & SIGNKEY )
+#define ISALLTRUE(x)	( ((SmlSign*)x)->flag & ALLISTRUE )
 
-#define CALCGTSIZE(flag, len) ( SMLSIGNHDRSZ + ( ( (flag) & ARRKEY ) ? ((len)*sizeof(uint32)) : (((flag) & ALLISTRUE) ? 0 : SIGLEN) ) )
-#define GETSIGN(x)      ( (BITVECP)( (char*)x+SMLSIGNHDRSZ ) )
-#define GETARR(x)       ( (uint32*)( (char*)x+SMLSIGNHDRSZ ) )
+#define CALCGTSIZE(flag, len)	( SMLSIGNHDRSZ + ( ( (flag) & ARRKEY ) ? ((len)*sizeof(uint32)) : (((flag) & ALLISTRUE) ? 0 : SIGLEN) ) )
+#define GETSIGN(x)				( (BITVECP)( (char*)x+SMLSIGNHDRSZ ) )
+#define GETARR(x)				( (uint32*)( (char*)x+SMLSIGNHDRSZ ) )
 
 #define GETENTRY(vec,pos) ((SmlSign *) DatumGetPointer((vec)->vector[(pos)].key))
 
@@ -52,7 +52,7 @@ typedef char *BITVECP;
  * Fake IO
  */
 PG_FUNCTION_INFO_V1(gsmlsign_in);
-Datum       gsmlsign_in(PG_FUNCTION_ARGS);
+Datum	gsmlsign_in(PG_FUNCTION_ARGS);
 Datum
 gsmlsign_in(PG_FUNCTION_ARGS)
 {
@@ -61,7 +61,7 @@ gsmlsign_in(PG_FUNCTION_ARGS)
 }
 
 PG_FUNCTION_INFO_V1(gsmlsign_out);
-Datum       gsmlsign_out(PG_FUNCTION_ARGS);
+Datum	gsmlsign_out(PG_FUNCTION_ARGS);
 Datum
 gsmlsign_out(PG_FUNCTION_ARGS)
 {
@@ -75,7 +75,7 @@ gsmlsign_out(PG_FUNCTION_ARGS)
 
 /* Number of one-bits in an unsigned byte */
 static const uint8 number_of_ones[256] = {
-    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
 	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
 	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
 	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
@@ -96,9 +96,9 @@ static const uint8 number_of_ones[256] = {
 static int
 compareint(const void *va, const void *vb)
 {
-    uint32        a = *((uint32 *) va);
-	uint32        b = *((uint32 *) vb);
-				 
+	uint32	a = *((uint32 *) va);
+	uint32	b = *((uint32 *) vb);
+
 	if (a == b)
 		return 0;
 	return (a > b) ? 1 : -1;
@@ -111,9 +111,9 @@ compareint(const void *va, const void *vb)
 static int
 uniqueint(uint32 *a, int32 l, int32 *max)
 {
-	uint32      *ptr,
-			   *res;
-	int32	   cnt = 0;
+	uint32		*ptr,
+				*res;
+	int32		cnt = 0;
 
 	*max = 1;
 
@@ -165,7 +165,7 @@ Array2HashedArray(ProcTypeInfo info, ArrayType *a)
 	ptr = GETARR(sign);
 	for(i=0;i<s->nelems;i++)
 		ptr[i] = DatumGetUInt32( FunctionCall1( &s->info->hashFunc, s->elems[i] ) );
-				
+
 	/*
 	 * there is a collision of hash-function; len is always equal or less than
 	 * s->nelems
@@ -180,9 +180,9 @@ Array2HashedArray(ProcTypeInfo info, ArrayType *a)
 static int
 HashedElemCmp(const void *va, const void *vb)
 {
-    uint32        a = ((HashedElem *) va)->hash;
-	uint32        b = ((HashedElem *) vb)->hash;
-				 
+	uint32	a = ((HashedElem *) va)->hash;
+	uint32	b = ((HashedElem *) vb)->hash;
+
 	if (a == b)
 	{
 		double	ma = ((HashedElem *) va)->idfMin;
@@ -200,8 +200,8 @@ HashedElemCmp(const void *va, const void *vb)
 static int
 uniqueHashedElem(HashedElem *a, int32 l)
 {
-	HashedElem      *ptr,
-			 		  *res;
+	HashedElem	*ptr,
+				*res;
 
 	if (l <= 1)
 		return l;
@@ -240,7 +240,7 @@ getHashedCache(void *cache)
 		for(i=0;i<stat->nelems;i++)
 		{
 			uint32	hash = DatumGetUInt32( FunctionCall1( &stat->info->hashFunc, stat->elems[i].datum ) );
-			int		index = HASHVAL(hash);	
+			int		index = HASHVAL(hash);
 
 			stat->helems[i].hash = hash;
 			stat->helems[i].idfMin = stat->helems[i].idfMax = stat->elems[i].idf;	
@@ -252,7 +252,7 @@ getHashedCache(void *cache)
 				stat->selems[index].idfMax = stat->elems[i].idf;
 		}
 
-		stat->nhelems = uniqueHashedElem( stat->helems, stat->nelems); 
+		stat->nhelems = uniqueHashedElem( stat->helems, stat->nelems);
 	}
 
 	return stat;
@@ -309,7 +309,7 @@ hasHashedElem(SmlSign  *a, uint32 h)
 
 	while (StopLow < StopHigh) {
 		StopMiddle = StopLow + ((StopHigh - StopLow) >> 1);
-		
+
 		if ( *StopMiddle == h )
 			return true;
 		else if ( *StopMiddle < h )
@@ -328,7 +328,7 @@ makesign(BITVECP sign, SmlSign	*a)
 	uint32	*ptr = GETARR(a);
 
 	MemSet((void *) sign, 0, sizeof(BITVEC));
-	SETBIT(sign, SIGLENBIT);    /* set last unused bit */
+	SETBIT(sign, SIGLENBIT);   /* set last unused bit */
 
 	for (i = 0; i < a->size; i++)
 		HASH(sign, ptr[i]);
@@ -362,7 +362,7 @@ gsmlsign_compress(PG_FUNCTION_ARGS)
 		sign = Array2HashedArray(NULL, a);
 
 		if ( VARSIZE(sign) > TOAST_INDEX_TARGET )
-		{	/* make signature due to its big size */ 
+		{	/* make signature due to its big size */
 			SmlSign	*tmpsign;
 			int		len;
 
@@ -373,7 +373,7 @@ gsmlsign_compress(PG_FUNCTION_ARGS)
 
 			makesign(GETSIGN(tmpsign), sign);
 			tmpsign->size = sizebitvec(GETSIGN(tmpsign));
-			tmpsign->maxrepeat = sign->maxrepeat; 
+			tmpsign->maxrepeat = sign->maxrepeat;
 			sign = tmpsign;
 		}
 
@@ -391,7 +391,7 @@ gsmlsign_compress(PG_FUNCTION_ARGS)
 
 		if ( sign->size == SIGLENBIT )
 		{
-			int32 	len = CALCGTSIZE(SIGNKEY | ALLISTRUE, 0);
+			int32	len = CALCGTSIZE(SIGNKEY | ALLISTRUE, 0);
 			int32	maxrepeat = sign->maxrepeat;
 
 			sign = (SmlSign *) palloc(len);
@@ -407,7 +407,7 @@ gsmlsign_compress(PG_FUNCTION_ARGS)
 							entry->offset, FALSE);
 		}
 	}
-		
+
 	PG_RETURN_POINTER(retval);
 }
 
@@ -416,8 +416,8 @@ Datum gsmlsign_decompress(PG_FUNCTION_ARGS);
 Datum
 gsmlsign_decompress(PG_FUNCTION_ARGS)
 {
-	GISTENTRY  	*entry = (GISTENTRY *) PG_GETARG_POINTER(0);
-	SmlSign 	*key =  (SmlSign*)DatumGetPointer(PG_DETOAST_DATUM(entry->key));
+	GISTENTRY	*entry = (GISTENTRY *) PG_GETARG_POINTER(0);
+	SmlSign		*key =  (SmlSign*)DatumGetPointer(PG_DETOAST_DATUM(entry->key));
 
 	if (key != (SmlSign *) DatumGetPointer(entry->key))
 	{
@@ -443,7 +443,7 @@ unionkey(BITVECP sbase, SmlSign *add)
 
 	if (ISSIGNKEY(add))
 	{
-		BITVECP     sadd = GETSIGN(add);
+		BITVECP	sadd = GETSIGN(add);
 
 		if (ISALLTRUE(add))
 			return true;
@@ -453,7 +453,7 @@ unionkey(BITVECP sbase, SmlSign *add)
 	}
 	else
 	{
-		uint32       *ptr = GETARR(add);
+		uint32	*ptr = GETARR(add);
 
 		for (i = 0; i < add->size; i++)
 			HASH(sbase, ptr[i]);
@@ -468,8 +468,8 @@ Datum
 gsmlsign_union(PG_FUNCTION_ARGS)
 {
 	GistEntryVector *entryvec = (GistEntryVector *) PG_GETARG_POINTER(0);
-	int        *size = (int *) PG_GETARG_POINTER(1);
-	BITVEC      base;
+	int				*size = (int *) PG_GETARG_POINTER(1);
+	BITVEC			base;
 	int32		i,
 				len,
 				maxrepeat = 1;
@@ -496,13 +496,13 @@ gsmlsign_union(PG_FUNCTION_ARGS)
 	result->flag = flag;
 	result->maxrepeat = maxrepeat;
 
-	if (!ISALLTRUE(result)) 
+	if (!ISALLTRUE(result))
 	{
 		memcpy((void *) GETSIGN(result), (void *) base, sizeof(BITVEC));
 		result->size = sizebitvec(GETSIGN(result));
 	}
 	else
-		result->size = SIGLENBIT; 
+		result->size = SIGLENBIT;
 
 	PG_RETURN_POINTER(result);
 }
@@ -579,9 +579,9 @@ gsmlsign_same(PG_FUNCTION_ARGS)
 static int
 hemdistsign(BITVECP a, BITVECP b)
 {
-    int         i,
-				diff,
-				dist = 0;
+	int	i,
+		diff,
+		dist = 0;
 
 	LOOPBYTE
 	{
@@ -590,7 +590,7 @@ hemdistsign(BITVECP a, BITVECP b)
 	}
 	return dist;
 }
-																	 
+
 static int
 hemdist(SmlSign *a, SmlSign *b)
 {
@@ -612,18 +612,18 @@ Datum gsmlsign_penalty(PG_FUNCTION_ARGS);
 Datum
 gsmlsign_penalty(PG_FUNCTION_ARGS)
 {
-    GISTENTRY  *origentry = (GISTENTRY *) PG_GETARG_POINTER(0); /* always ISSIGNKEY */
-	GISTENTRY  *newentry = (GISTENTRY *) PG_GETARG_POINTER(1);
-	float      *penalty = (float *) PG_GETARG_POINTER(2);
-	SmlSign *origval = (SmlSign *) DatumGetPointer(origentry->key);
-	SmlSign *newval = (SmlSign *) DatumGetPointer(newentry->key);
-	BITVECP     orig = GETSIGN(origval);
+	GISTENTRY	*origentry = (GISTENTRY *) PG_GETARG_POINTER(0); /* always ISSIGNKEY */
+	GISTENTRY	*newentry = (GISTENTRY *) PG_GETARG_POINTER(1);
+	float		*penalty = (float *) PG_GETARG_POINTER(2);
+	SmlSign		*origval = (SmlSign *) DatumGetPointer(origentry->key);
+	SmlSign		*newval = (SmlSign *) DatumGetPointer(newentry->key);
+	BITVECP		orig = GETSIGN(origval);
 
 	*penalty = 0.0;
 
 	if (ISARRKEY(newval))
 	{
-		BITVEC      sign;
+		BITVEC	sign;
 
 		makesign(sign, newval);
 
@@ -644,22 +644,22 @@ gsmlsign_penalty(PG_FUNCTION_ARGS)
 
 typedef struct
 {
-	bool        allistrue;
-	int32		size;
-	BITVEC      sign;
+	bool	allistrue;
+	int32	size;
+	BITVEC	sign;
 } CACHESIGN;
 
 static void
 fillcache(CACHESIGN *item, SmlSign *key)
 {
-    item->allistrue = false;
+	item->allistrue = false;
 	item->size = key->size;
 
-	if (ISARRKEY(key)) 
+	if (ISARRKEY(key))
 	{
 		makesign(item->sign, key);
-		item->size = sizebitvec( item->sign ); 
-	} 
+		item->size = sizebitvec( item->sign );
+	}
 	else if (ISALLTRUE(key))
 		item->allistrue = true;
 	else
@@ -671,7 +671,7 @@ fillcache(CACHESIGN *item, SmlSign *key)
 typedef struct
 {
 	OffsetNumber pos;
-	int32        cost;
+	int32		cost;
 } SPLITCOST;
 
 static int
@@ -711,22 +711,22 @@ gsmlsign_picksplit(PG_FUNCTION_ARGS)
 	GIST_SPLITVEC *v = (GIST_SPLITVEC *) PG_GETARG_POINTER(1);
 	OffsetNumber k,
 				j;
-	SmlSign 	*datum_l,
+	SmlSign		*datum_l,
 				*datum_r;
-	BITVECP     union_l,
+	BITVECP		union_l,
 				union_r;
-	int32       size_alpha,
+	int32		size_alpha,
 				size_beta;
-	int32       size_waste,
+	int32		size_waste,
 				waste = -1;
-	int32       nbytes;
+	int32		nbytes;
 	OffsetNumber seed_1 = 0,
 				seed_2 = 0;
 	OffsetNumber *left,
 				*right;
 	OffsetNumber maxoff;
-	BITVECP     ptr;
-	int         i;
+	BITVECP		ptr;
+	int			i;
 	CACHESIGN  *cache;
 	SPLITCOST  *costvector;
 
@@ -738,7 +738,7 @@ gsmlsign_picksplit(PG_FUNCTION_ARGS)
 	cache = (CACHESIGN *) palloc(sizeof(CACHESIGN) * (maxoff + 2));
 	fillcache(&cache[FirstOffsetNumber], GETENTRY(entryvec, FirstOffsetNumber));
 
-   	for (k = FirstOffsetNumber; k < maxoff; k = OffsetNumberNext(k))
+	for (k = FirstOffsetNumber; k < maxoff; k = OffsetNumberNext(k))
 	{
 		for (j = OffsetNumberNext(k); j <= maxoff; j = OffsetNumberNext(j))
 		{
@@ -772,7 +772,7 @@ gsmlsign_picksplit(PG_FUNCTION_ARGS)
 		datum_l = (SmlSign *) palloc(CALCGTSIZE(SIGNKEY | ALLISTRUE, 0));
 		SET_VARSIZE(datum_l, CALCGTSIZE(SIGNKEY | ALLISTRUE, 0));
 		datum_l->flag = SIGNKEY | ALLISTRUE;
-		datum_l->size = SIGLENBIT; 
+		datum_l->size = SIGLENBIT;
 	}
 	else
 	{
@@ -932,8 +932,8 @@ Datum
 gsmlsign_consistent(PG_FUNCTION_ARGS)
 {
 	GISTENTRY		*entry = (GISTENTRY *) PG_GETARG_POINTER(0);
-	StrategyNumber 	strategy = (StrategyNumber) PG_GETARG_UINT16(2);
-	bool       		*recheck = (bool *) PG_GETARG_POINTER(4);
+	StrategyNumber	strategy = (StrategyNumber) PG_GETARG_UINT16(2);
+	bool			*recheck = (bool *) PG_GETARG_POINTER(4);
 	ArrayType		*a;
 	SmlSign			*key = (SmlSign*)DatumGetPointer(entry->key);
 	int				res = false;
@@ -959,8 +959,8 @@ gsmlsign_consistent(PG_FUNCTION_ARGS)
 		}
 		else if (ISARRKEY(key))
 		{
-			uint32          *kptr = GETARR(key),
-							*qptr = GETARR(query);
+			uint32	*kptr = GETARR(key),
+					*qptr = GETARR(query);
 
 			while( kptr - GETARR(key) < key->size && qptr - GETARR(query) < query->size )
 			{
@@ -1019,8 +1019,8 @@ gsmlsign_consistent(PG_FUNCTION_ARGS)
 	}
 	else if (ISARRKEY(key))
 	{
-		uint32      *kptr = GETARR(key),
-					*qptr = GETARR(query);
+		uint32	*kptr = GETARR(key),
+				*qptr = GETARR(query);
 
 		Assert( GIST_LEAF(entry) );
 
@@ -1079,7 +1079,7 @@ gsmlsign_consistent(PG_FUNCTION_ARGS)
 
 					if (  ((double)Min(key->size, s->nelems)) / power >= GetSmlarLimit() )
 					{
- 				   		int  cnt = 0;
+						int  cnt = 0;
 
 						while( kptr - GETARR(key) < key->size && qptr - GETARR(query) < query->size )
 						{
@@ -1094,7 +1094,7 @@ gsmlsign_consistent(PG_FUNCTION_ARGS)
 								qptr++;
 							}
 						}
-			
+
 						if ( ((double)cnt) / power >= GetSmlarLimit() )
 							res = true;
 					}
@@ -1122,7 +1122,7 @@ gsmlsign_consistent(PG_FUNCTION_ARGS)
 									sumQ = 0.0,
 									sumK = 0.0;
 						double		maxKTF = getIdfMaxLimit(key);
-	
+
 						Assert( s->df );
 						if ( stat->info != s->info )
 							elog(ERROR,"Statistic and actual argument have different type");
@@ -1157,13 +1157,13 @@ gsmlsign_consistent(PG_FUNCTION_ARGS)
 					break;
 				case ST_COSINE:
 					{
-						double          power;
+						double	power;
 
 						power = sqrt( ((double)(key->size)) * ((double)(s->nelems)) );
 
 						for(i=0; i<s->nelems; i++)
 							count += GETBIT(sign, HASHVAL(s->hash[i]));
-		
+
 						if ( ((double)count) / power >= GetSmlarLimit() )
 							res = true;
 					}
@@ -1183,7 +1183,7 @@ gsmlsign_consistent(PG_FUNCTION_ARGS)
 									sumQ = 0.0,
 									minK = -1.0;
 						double		maxKTF = getIdfMaxLimit(key);
-	
+
 						Assert( s->df );
 						if ( stat->info != s->info )
 							elog(ERROR,"Statistic and actual argument have different type");
@@ -1209,7 +1209,7 @@ gsmlsign_consistent(PG_FUNCTION_ARGS)
 					{
 						for(i=0; i<s->nelems; i++)
 							count += GETBIT(sign, HASHVAL(s->hash[i]));
-				
+
 						if ( s->nelems == count  || sqrt(((double)count) / ((double)(s->nelems))) >= GetSmlarLimit() )
 							res = true;
 					}

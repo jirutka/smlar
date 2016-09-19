@@ -41,7 +41,7 @@ initStatCache(MemoryContext ctx)
 	if (PersistentDocStat && GetSmlarUsePersistent())
 		return PersistentDocStat;
 	else {
-		int 		stat;
+		int			stat;
 		char		buf[1024];
 		const char	*tbl = GetSmlarTable();
 		StatCache	*cache = NULL;
@@ -49,7 +49,7 @@ initStatCache(MemoryContext ctx)
 		if ( tbl == NULL || *tbl == '\0' )
 			elog(ERROR,"smlar.stattable is not defined");
 
-		sprintf(buf,"SELECT * FROM \"%s\" ORDER BY 1;", tbl); 
+		sprintf(buf,"SELECT * FROM \"%s\" ORDER BY 1;", tbl);
 		SPI_connect();
 		stat = SPI_execute(buf, true, 0);
 
@@ -62,7 +62,7 @@ initStatCache(MemoryContext ctx)
 		}
 		else
 		{
-			int 	i;
+			int		i;
 			double	totaldocs = 0.0;
 			Oid		ndocType = SPI_gettypeid(SPI_tuptable->tupdesc, 2);
 
@@ -81,7 +81,7 @@ initStatCache(MemoryContext ctx)
 			for(i=0; i<SPI_processed; i++)
 			{
 				bool	isnullvalue, isnullndoc;
-				Datum 	datum = SPI_getbinval(SPI_tuptable->vals[i], SPI_tuptable->tupdesc, 1, &isnullvalue);
+				Datum	datum = SPI_getbinval(SPI_tuptable->vals[i], SPI_tuptable->tupdesc, 1, &isnullvalue);
 				int64	ndoc;
 
 				if (ndocType == INT4OID)
@@ -115,7 +115,7 @@ initStatCache(MemoryContext ctx)
 					else
 					{
 						size_t	size = datumGetSize(datum, false, cache->info->typlen);
-						
+
 						cache->elems[i].datum = PointerGetDatum(cacheAlloc(ctx, size));
 						memcpy(DatumGetPointer(cache->elems[i].datum), DatumGetPointer(datum), size);
 					}
@@ -127,7 +127,7 @@ initStatCache(MemoryContext ctx)
 			if ( totaldocs <= 0)
 				elog(ERROR,"Total number of document is unknown");
 			cache->nelems = SPI_processed - 1;
-			
+
 			for(i=0;i<cache->nelems;i++)
 			{
 				if ( totaldocs < cache->elems[i].idf )

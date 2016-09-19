@@ -58,7 +58,7 @@ typedef struct SimpleArray {
 	Datum		   *elems;
 	double		   *df;  /* frequency in current doc */
 	uint32		   *hash;
-	int		 		nelems;
+	int				nelems;
 	ProcTypeInfo	info;
 } SimpleArray;
 
@@ -80,19 +80,19 @@ int getSmlType(void);
  * GiST
  */
 
-#define SmlarOverlapStrategy        1
-#define SmlarSimilarityStrategy     2
+#define SmlarOverlapStrategy		1
+#define SmlarSimilarityStrategy		2
 
 struct SmlSign;
 struct SmlSign* Array2HashedArray(ProcTypeInfo info, ArrayType *a);
 /*
  * Cache subsystem
  */
-void* 	SearchArrayCache( void *cache, MemoryContext ctx, Datum a, ArrayType **da, SimpleArray **sa,  struct SmlSign  **ss );
+void*	SearchArrayCache( void *cache, MemoryContext ctx, Datum a, ArrayType **da, SimpleArray **sa,  struct SmlSign  **ss );
 
 typedef struct StatElem {
-    Datum   	datum;
-	double     	idf; /*  log(d/df) */
+	Datum		datum;
+	double		idf; /*  log(d/df) */
 } StatElem;
 
 typedef struct HashedElem {
@@ -107,13 +107,13 @@ typedef struct SignedElem {
 } SignedElem;
 
 typedef struct StatCache {
-	StatElem        *elems;
-	int             nelems;
-	int64_t         ndoc;
+	StatElem		*elems;
+	int				nelems;
+	int64_t			ndoc;
 	HashedElem		*helems;
-	int             nhelems;
+	int				nhelems;
 	SignedElem		*selems;
-	ProcTypeInfo    info;
+	ProcTypeInfo	info;
 } StatCache;
 
 StatCache *initStatCache(MemoryContext ctx);

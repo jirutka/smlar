@@ -39,7 +39,7 @@ SmlarLogAssign(bool newval, void *extra)
 static int smlar_smltype = ST_COSINE;
 
 static const struct config_enum_entry SmlarTypeOptions[] = {
-    {"cosine", ST_COSINE, false},
+	{"cosine", ST_COSINE, false},
 	{"tfidf", ST_TFIDF, false},
 	{"overlap", ST_OVERLAP, false},
 	{NULL, 0, false}
@@ -47,7 +47,7 @@ static const struct config_enum_entry SmlarTypeOptions[] = {
 
 static int	smlar_tf_method = TF_N;
 static const struct config_enum_entry SmlarTFOptions[] = {
-    {"n", TF_N, false},
+	{"n", TF_N, false},
 	{"log", TF_LOG, false},
 	{"const", TF_CONST, false},
 	{NULL, 0, false}
@@ -199,12 +199,12 @@ GetSmlarUsePersistent(void)
 }
 
 PG_FUNCTION_INFO_V1(set_smlar_limit);
-Datum       set_smlar_limit(PG_FUNCTION_ARGS);
+Datum	set_smlar_limit(PG_FUNCTION_ARGS);
 Datum
 set_smlar_limit(PG_FUNCTION_ARGS)
 {
-	float4      nlimit = PG_GETARG_FLOAT4(0);
-	char		buf[32];
+	float4	nlimit = PG_GETARG_FLOAT4(0);
+	char	buf[32];
 
 	/* init smlar guc */
 	initSmlarGUC();
@@ -220,7 +220,7 @@ set_smlar_limit(PG_FUNCTION_ARGS)
 }
 
 PG_FUNCTION_INFO_V1(show_smlar_limit);
-Datum       show_smlar_limit(PG_FUNCTION_ARGS);
+Datum	show_smlar_limit(PG_FUNCTION_ARGS);
 Datum
 show_smlar_limit(PG_FUNCTION_ARGS)
 {

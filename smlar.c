@@ -29,7 +29,7 @@ PG_MODULE_MAGIC;
 #endif
 
 static Oid
-getDefaultOpclass(Oid amoid, Oid typid) 
+getDefaultOpclass(Oid amoid, Oid typid)
 {
 	ScanKeyData	skey;
 	SysScanDesc	scan;
@@ -37,15 +37,15 @@ getDefaultOpclass(Oid amoid, Oid typid)
 	Relation	heapRel;
 	Oid			opclassOid = InvalidOid;
 
-	heapRel = heap_open(OperatorClassRelationId, AccessShareLock);	
+	heapRel = heap_open(OperatorClassRelationId, AccessShareLock);
 
 	ScanKeyInit(&skey,
 				Anum_pg_opclass_opcmethod,
 				BTEqualStrategyNumber,	F_OIDEQ,
 				ObjectIdGetDatum(amoid));
 
-	scan = systable_beginscan(heapRel, 
-								OpclassAmNameNspIndexId, true, 
+	scan = systable_beginscan(heapRel,
+								OpclassAmNameNspIndexId, true,
 								SNAPSHOT, 1, &skey);
 
 	while (HeapTupleIsValid((tuple = systable_getnext(scan))))
@@ -67,7 +67,7 @@ getDefaultOpclass(Oid amoid, Oid typid)
 }
 
 static Oid
-getAMProc(Oid amoid, Oid typid) 
+getAMProc(Oid amoid, Oid typid)
 {
 	Oid		opclassOid = getDefaultOpclass(amoid, typid);
 	Oid		procOid = InvalidOid;
@@ -97,7 +97,7 @@ getAMProc(Oid amoid, Oid typid)
 
 		for (i = 0; i < catlist->n_members; i++)
 		{
-			HeapTuple   	tuple = &catlist->members[i]->tuple;
+			HeapTuple		tuple = &catlist->members[i]->tuple;
 			Form_pg_cast	castForm = (Form_pg_cast)GETSTRUCT(tuple);
 
 			if ( castForm->castfunc == InvalidOid && castForm->castcontext == COERCION_CODE_IMPLICIT )
@@ -111,7 +111,7 @@ getAMProc(Oid amoid, Oid typid)
 
 		ReleaseSysCacheList(catlist);
 	}
-	
+
 	if ( !OidIsValid(opclassOid) )
 		return InvalidOid;
 
@@ -138,7 +138,7 @@ getAMProc(Oid amoid, Oid typid)
 #endif
 
 	scan = systable_beginscan(heapRel, AccessMethodProcedureIndexId, true,
-								SNAPSHOT, 
+								SNAPSHOT,
 #if PG_VERSION_NUM >= 90200
 								4,
 #else
@@ -203,8 +203,8 @@ fillProcs(Oid typid)
 
 		info->cmpFuncOid = getAMProc(BTREE_AM_OID, info->tupDesc->attrs[0]->atttypid);
 		info->hashFuncOid = getAMProc(HASH_AM_OID, info->tupDesc->attrs[0]->atttypid);
-	} 
-	else 
+	}
+	else
 	{
 		info->tupDesc = NULL;
 
@@ -254,7 +254,7 @@ cmpProcTypeInfo(const void *a, const void *b)
 
 	Assert( av->typid != bv->typid );
 
-	return ( av->typid > bv->typid ) ? 1 : -1; 
+	return ( av->typid > bv->typid ) ? 1 : -1;
 }
 
 ProcTypeInfo
@@ -264,7 +264,7 @@ findProcs(Oid typid)
 
 	if ( nCacheProcs == 1 )
 	{
-		if ( cacheProcs[0]->typid == typid ) 
+		if ( cacheProcs[0]->typid == typid )
 		{
 			/*cacheProcs[0]->hashFuncInited = cacheProcs[0]->cmpFuncInited = false;*/
 			return cacheProcs[0];
@@ -273,7 +273,7 @@ findProcs(Oid typid)
 	else if ( nCacheProcs > 1 )
 	{
 		ProcTypeInfo	*StopMiddle;
-		ProcTypeInfo	*StopLow = cacheProcs, 
+		ProcTypeInfo	*StopLow = cacheProcs,
 						*StopHigh = cacheProcs + nCacheProcs;
 
 		while (StopLow < StopHigh) {
@@ -295,7 +295,7 @@ findProcs(Oid typid)
 	} 
 
 	info = fillProcs(typid);
-	if ( nCacheProcs == 0 ) 
+	if ( nCacheProcs == 0 )
 	{
 		cacheProcs = malloc(sizeof(ProcTypeInfo));
 
@@ -379,11 +379,11 @@ cmpArrayElem(const void *a, const void *b, void *arg)
 {
 	ProcTypeInfo	info = (ProcTypeInfo)arg;
 
-	if (info->tupDesc) 
+	if (info->tupDesc)
 		/* composite type */
 		return DatumGetInt32( FCall2( &info->cmpFunc,
-											deconstructCompositeType(info, *(Datum*)a, NULL),
-											deconstructCompositeType(info, *(Datum*)b, NULL) ) );
+						deconstructCompositeType(info, *(Datum*)a, NULL),
+						deconstructCompositeType(info, *(Datum*)b, NULL) ) );
 
 	return DatumGetInt32( FCall2( &info->cmpFunc,
 							*(Datum*)a, *(Datum*)b ) );
@@ -413,13 +413,13 @@ typedef struct cmpArrayElemData {
 static int
 cmpArrayElemArg(const void *a, const void *b, void *arg)
 {
-    cmpArrayElemData    *data = (cmpArrayElemData*)arg;
-	int res;
+	cmpArrayElemData	*data = (cmpArrayElemData*)arg;
+	int					res;
 
 	if (data->info->tupDesc)
 		res =  DatumGetInt32( FCall2( &data->info->cmpFunc,
-											deconstructCompositeType(data->info, *(Datum*)a, NULL),
-											deconstructCompositeType(data->info, *(Datum*)b, NULL) ) );
+					deconstructCompositeType(data->info, *(Datum*)a, NULL),
+					deconstructCompositeType(data->info, *(Datum*)b, NULL) ) );
 	else
 		res = DatumGetInt32( FCall2( &data->info->cmpFunc,
 								*(Datum*)a, *(Datum*)b ) );
@@ -454,7 +454,7 @@ Array2SimpleArrayU(ProcTypeInfo info, ArrayType *a, void *cache)
 	if ( s->nelems > 1 )
 	{
 		cmpArrayElemData	data;
-		int 				i;
+		int					i;
 
 		getFmgrInfoCmp(s->info);
 		data.info = s->info;
@@ -512,13 +512,13 @@ Array2SimpleArrayU(ProcTypeInfo info, ArrayType *a, void *cache)
 								break;
 							default:
 								elog(ERROR,"Unknown TF method: %d", tfm);
-						}	
+						}
 					}
 					else
 					{
 						s->df[i] = 0.0; /* unknown word */
 					}
-				}	
+				}
 			}
 		}
 		else if ( cache )
@@ -533,7 +533,7 @@ Array2SimpleArrayU(ProcTypeInfo info, ArrayType *a, void *cache)
 			}
 		}
 	}
-	else if (s->nelems > 0 && cache) 
+	else if (s->nelems > 0 && cache)
 	{
 		stat = fingArrayStat(cache, s->info->typid, s->elems[0], stat);
 		if ( stat )
@@ -646,12 +646,12 @@ arraysml(PG_FUNCTION_ARGS)
 {
 	ArrayType		*a, *b;
 	SimpleArray		*sa, *sb;
-	
-	fcinfo->flinfo->fn_extra = SearchArrayCache( 
+
+	fcinfo->flinfo->fn_extra = SearchArrayCache(
 							fcinfo->flinfo->fn_extra,
 							fcinfo->flinfo->fn_mcxt,
 							PG_GETARG_DATUM(0), &a, &sa, NULL);
-	fcinfo->flinfo->fn_extra = SearchArrayCache( 
+	fcinfo->flinfo->fn_extra = SearchArrayCache(
 							fcinfo->flinfo->fn_extra,
 							fcinfo->flinfo->fn_mcxt,
 							PG_GETARG_DATUM(1), &b, &sb, NULL);
@@ -664,10 +664,10 @@ arraysml(PG_FUNCTION_ARGS)
 
 	switch(getSmlType())
 	{
-		case	ST_TFIDF:
+		case ST_TFIDF:
 			PG_RETURN_FLOAT4( TFIDFSml(sa, sb) );
 			break;
-		case 	ST_COSINE:
+		case ST_COSINE:
 			{
 				int				cnt;
 				double			power;
@@ -678,7 +678,7 @@ arraysml(PG_FUNCTION_ARGS)
 				PG_RETURN_FLOAT4(  ((double)cnt) / sqrt( power ) );
 			}
 			break;
-		case 	ST_OVERLAP:
+		case ST_OVERLAP:
 			{
 				float4 res = (float4)numOfIntersect(sa, sb);
 
@@ -689,7 +689,7 @@ arraysml(PG_FUNCTION_ARGS)
 			elog(ERROR,"Unsupported formula type of similarity");
 	}
 
-	PG_RETURN_FLOAT4(0.0); /* keep compiler quiet */ 
+	PG_RETURN_FLOAT4(0.0); /* keep compiler quiet */
 }
 
 PG_FUNCTION_INFO_V1(arraysmlw);
@@ -700,20 +700,19 @@ arraysmlw(PG_FUNCTION_ARGS)
 	ArrayType		*a, *b;
 	SimpleArray		*sa, *sb;
 	bool			useIntersect = PG_GETARG_BOOL(2);
-	double  		numerator = 0.0;
-	double  		denominatorA = 0.0,
+	double			numerator = 0.0;
+	double			denominatorA = 0.0,
 					denominatorB = 0.0,
 					tmpA, tmpB;
 	int				cmp;
 	ProcTypeInfo	info;
 	int				ai = 0, bi = 0;
 
-	
-	fcinfo->flinfo->fn_extra = SearchArrayCache( 
+	fcinfo->flinfo->fn_extra = SearchArrayCache(
 							fcinfo->flinfo->fn_extra,
 							fcinfo->flinfo->fn_mcxt,
 							PG_GETARG_DATUM(0), &a, &sa, NULL);
-	fcinfo->flinfo->fn_extra = SearchArrayCache( 
+	fcinfo->flinfo->fn_extra = SearchArrayCache(
 							fcinfo->flinfo->fn_extra,
 							fcinfo->flinfo->fn_mcxt,
 							PG_GETARG_DATUM(1), &b, &sb, NULL);
@@ -782,12 +781,12 @@ arraysml_op(PG_FUNCTION_ARGS)
 	ArrayType		*a, *b;
 	SimpleArray		*sa, *sb;
 	double			power = 0.0;
-	
-	fcinfo->flinfo->fn_extra = SearchArrayCache( 
+
+	fcinfo->flinfo->fn_extra = SearchArrayCache(
 							fcinfo->flinfo->fn_extra,
 							fcinfo->flinfo->fn_mcxt,
 							PG_GETARG_DATUM(0), &a, &sa, NULL);
-	fcinfo->flinfo->fn_extra = SearchArrayCache( 
+	fcinfo->flinfo->fn_extra = SearchArrayCache(
 							fcinfo->flinfo->fn_extra,
 							fcinfo->flinfo->fn_mcxt,
 							PG_GETARG_DATUM(1), &b, &sb, NULL);
@@ -800,10 +799,10 @@ arraysml_op(PG_FUNCTION_ARGS)
 
 	switch(getSmlType())
 	{
-		case	ST_TFIDF:
+		case ST_TFIDF:
 			power = TFIDFSml(sa, sb);
 			break;
-		case 	ST_COSINE:
+		case ST_COSINE:
 			{
 				int				cnt;
 
@@ -816,7 +815,7 @@ arraysml_op(PG_FUNCTION_ARGS)
 				power = ((double)cnt) / power;
 			}
 			break;
-		case 	ST_OVERLAP:
+		case ST_OVERLAP:
 			power = (double)numOfIntersect(sa, sb);
 			break;
 		default:
@@ -845,13 +844,13 @@ arraysml_func(PG_FUNCTION_ARGS)
 	bool			isnull;
 	void			*plan;
 	int				stat;
-	text			*formula = PG_GETARG_TEXT_P(2); 
-	
-	fcinfo->flinfo->fn_extra = SearchArrayCache( 
+	text			*formula = PG_GETARG_TEXT_P(2);
+
+	fcinfo->flinfo->fn_extra = SearchArrayCache(
 							fcinfo->flinfo->fn_extra,
 							fcinfo->flinfo->fn_mcxt,
 							PG_GETARG_DATUM(0), &a, &sa, NULL);
-	fcinfo->flinfo->fn_extra = SearchArrayCache( 
+	fcinfo->flinfo->fn_extra = SearchArrayCache(
 							fcinfo->flinfo->fn_extra,
 							fcinfo->flinfo->fn_mcxt,
 							PG_GETARG_DATUM(1), &b, &sb, NULL);
@@ -869,7 +868,6 @@ arraysml_func(PG_FUNCTION_ARGS)
 
 	SPI_connect();
 
-	
 	if ( cachedPlan == NULL || cachedLen != VARSIZE(formula) - VARHDRSZ ||
 				memcmp( cachedFormula, VARDATA(formula), VARSIZE(formula) - VARHDRSZ ) != 0 )
 	{
@@ -898,7 +896,7 @@ arraysml_func(PG_FUNCTION_ARGS)
 
 		SPI_freeplan(plan);
 		cachedLen = VARSIZE(formula) - VARHDRSZ;
-		memcpy( cachedFormula, VARDATA(formula), VARSIZE(formula) - VARHDRSZ );	
+		memcpy( cachedFormula, VARDATA(formula), VARSIZE(formula) - VARHDRSZ );
 	}
 
 	plan = cachedPlan;
@@ -952,14 +950,14 @@ inarray(PG_FUNCTION_ARGS)
 {
 	ArrayType		*a;
 	SimpleArray		*sa;
-	Datum			query = PG_GETARG_DATUM(1); 
+	Datum			query = PG_GETARG_DATUM(1);
 	Oid				queryTypeOid;
 	Datum			*StopLow,
 					*StopHigh,
 					*StopMiddle;
 	int				cmp;
 
-	fcinfo->flinfo->fn_extra = SearchArrayCache( 
+	fcinfo->flinfo->fn_extra = SearchArrayCache(
 							fcinfo->flinfo->fn_extra,
 							fcinfo->flinfo->fn_mcxt,
 							PG_GETARG_DATUM(0), &a, &sa, NULL);
@@ -976,7 +974,7 @@ inarray(PG_FUNCTION_ARGS)
 	StopLow = sa->elems;
 	StopHigh = sa->elems + sa->nelems;
 
-	while (StopLow < StopHigh) 
+	while (StopLow < StopHigh)
 	{
 		StopMiddle = StopLow + ((StopHigh - StopLow) >> 1);
 		cmp = cmpArrayElem(StopMiddle, &query, sa->info);

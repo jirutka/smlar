@@ -13,7 +13,7 @@ Datum
 smlararrayextract(PG_FUNCTION_ARGS)
 {
 	ArrayType	*array;
-	int32      *nentries = (int32 *) PG_GETARG_POINTER(1);
+	int32		*nentries = (int32 *) PG_GETARG_POINTER(1);
 	SimpleArray	*sa;
 
 	/*
@@ -30,7 +30,7 @@ smlararrayextract(PG_FUNCTION_ARGS)
 
 	if (sa->nelems == 0 && PG_NARGS() == 3)
 	{
-		switch (PG_GETARG_UINT16(2))    /* StrategyNumber */
+		switch (PG_GETARG_UINT16(2))	/* StrategyNumber */
 		{
 			case	SmlarOverlapStrategy:
 			case	SmlarSimilarityStrategy:
@@ -60,13 +60,13 @@ Datum smlararrayconsistent(PG_FUNCTION_ARGS);
 Datum
 smlararrayconsistent(PG_FUNCTION_ARGS)
 {
-	bool       		*check = (bool *) PG_GETARG_POINTER(0);
-	StrategyNumber 	strategy = PG_GETARG_UINT16(1);
+	bool			*check = (bool *) PG_GETARG_POINTER(0);
+	StrategyNumber	strategy = PG_GETARG_UINT16(1);
 	SimpleArray		*sa;
 	bool			res = false;
 	int				i,
 					cnt = 0;
-	bool       		*recheck = (bool *) PG_GETARG_POINTER(5);
+	bool			*recheck = (bool *) PG_GETARG_POINTER(5);
 
 	*recheck = true;
 
@@ -93,9 +93,9 @@ smlararrayconsistent(PG_FUNCTION_ARGS)
 
 			switch(getSmlType())
 			{
-				case	ST_TFIDF:
+				case ST_TFIDF:
 						{
-							double 	weight = 0.0, /* exact weight of union */
+							double	weight = 0.0, /* exact weight of union */
 									saSum = 0.0,  /* exact length of query */
 									siSum = 0.0;  /* lower limit of length of indexed value */ 
 
@@ -122,7 +122,7 @@ smlararrayconsistent(PG_FUNCTION_ARGS)
 								res = true;
 						}
 						break;
-				case 	ST_COSINE:
+				case ST_COSINE:
 						{
 							double			power;
 
@@ -132,7 +132,7 @@ smlararrayconsistent(PG_FUNCTION_ARGS)
 								res = true;
 						}
 						break;
-				case 	ST_OVERLAP:
+				case ST_OVERLAP:
 						if (cnt >= GetSmlarLimit())
 							res = true;
 						break;

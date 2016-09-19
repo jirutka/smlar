@@ -29,7 +29,7 @@ typedef struct ArrayCache {
 	StatCache			*DocStat;
 } ArrayCache;
 
-static void 
+static void
 moveFirst(ArrayCache *ac, ArrayCacheEntry *entry)
 {
 	/*
@@ -52,7 +52,7 @@ moveFirst(ArrayCache *ac, ArrayCacheEntry *entry)
 	}
 
 	/*
-	 * Install into head 
+	 * Install into head
 	 */
 
 	Assert( ac->head != NULL );
@@ -64,7 +64,7 @@ moveFirst(ArrayCache *ac, ArrayCacheEntry *entry)
 	ac->head = entry;
 }
 
-#define	DATUMSIZE(d)	VARSIZE_ANY(DatumGetPointer(d))	
+#define	DATUMSIZE(d)	VARSIZE_ANY(DatumGetPointer(d))
 static int
 cmpDatum(Datum a, Datum b)
 {
@@ -175,7 +175,7 @@ SearchArrayCache( void *cache, MemoryContext ctx, Datum a, ArrayType **da, Simpl
 	ac->ctx = ctx;
 
 	/*
-	 * Fast check of resent used value 
+	 * Fast check of resent used value
 	 */
 	if ( ac->head && cmpDatum(ac->head->toastedArray, a) == 0 )
 	{
@@ -198,10 +198,10 @@ SearchArrayCache( void *cache, MemoryContext ctx, Datum a, ArrayType **da, Simpl
 		ArrayCacheEntry	**StopMiddle;
 		int cmp;
 
-        while (StopLow < StopHigh) {
+		while (StopLow < StopHigh) {
 			StopMiddle = StopLow + ((StopHigh - StopLow) >> 1);
 			entry = *StopMiddle;
-			cmp = cmpDatum(entry->toastedArray, a); 
+			cmp = cmpDatum(entry->toastedArray, a);
 
 			if ( cmp == 0 )
 			{
@@ -217,7 +217,7 @@ SearchArrayCache( void *cache, MemoryContext ctx, Datum a, ArrayType **da, Simpl
 	} while(0);
 
 	/*
-	 * Not found 
+	 * Not found
 	 */
 
 	if ( ac->nentries < NENTRIES )
@@ -234,7 +234,7 @@ SearchArrayCache( void *cache, MemoryContext ctx, Datum a, ArrayType **da, Simpl
 
 		makeEntry(ac, ac->head, a);
 		fetchData(ac, ac->head, da, sa, ss);
-	} 
+	}
 	else
 	{
 		cleanupData( ac->tail );
@@ -243,7 +243,7 @@ SearchArrayCache( void *cache, MemoryContext ctx, Datum a, ArrayType **da, Simpl
 		fetchData(ac, ac->head, da, sa, ss);
 	}
 
-	qsort(ac->entries, ac->nentries, sizeof(ArrayCacheEntry*), cmpEntry);	
+	qsort(ac->entries, ac->nentries, sizeof(ArrayCacheEntry*), cmpEntry);
 	return cache;
 }
 
@@ -265,13 +265,13 @@ fingArrayStat(void *cache, Oid typoid, Datum query, StatElem *low)
 	if ( typoid != ac->DocStat->info->typid )
 		elog(ERROR,"Types of stat table and actual arguments are different");
 
-	return findStat(ac->DocStat, query, low);	
+	return findStat(ac->DocStat, query, low);
 }
 
 StatCache *
 getStat(void *cache, size_t n)
 {
-	ArrayCache      *ac;
+	ArrayCache	*ac;
 
 	if ( cache == NULL )
 		return NULL;
