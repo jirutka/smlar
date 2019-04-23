@@ -6,6 +6,8 @@
 #include "access/tupdesc.h"
 #include "catalog/pg_collation.h"
 
+#include <math.h>
+
 typedef	struct ProcTypeInfoData	*ProcTypeInfo;
 
 typedef struct ProcTypeInfoData {

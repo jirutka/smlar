@@ -91,9 +91,14 @@ getAMProc(Oid amoid, Oid typid)
 		/*
 		 * Search binary-coercible type
 		 */
+#ifdef SearchSysCacheList1
+		catlist = SearchSysCacheList1(CASTSOURCETARGET,
+									  ObjectIdGetDatum(typid));
+#else
 		catlist = SearchSysCacheList(CASTSOURCETARGET, 1,
 										ObjectIdGetDatum(typid),
 										0, 0, 0);
+#endif
 
 		for (i = 0; i < catlist->n_members; i++)
 		{
@@ -171,6 +176,10 @@ getAMProc(Oid amoid, Oid typid)
 static ProcTypeInfo *cacheProcs = NULL;
 static int nCacheProcs = 0;
 
+#ifndef TupleDescAttr
+#define TupleDescAttr(tupdesc, i)	((tupdesc)->attrs[(i)])
+#endif
+
 static ProcTypeInfo
 fillProcs(Oid typid)
 {
@@ -192,7 +201,7 @@ fillProcs(Oid typid)
 
 		if (tupdesc->natts != 2)
 			elog(ERROR,"Composite type has wrong number of fields");
-		if (tupdesc->attrs[1]->atttypid != FLOAT4OID)
+		if (TupleDescAttr(tupdesc, 1)->atttypid != FLOAT4OID)
 			elog(ERROR,"Second field of composite type is not float4");
 
 		oldcontext = MemoryContextSwitchTo(TopMemoryContext);
@@ -201,8 +210,10 @@ fillProcs(Oid typid)
 
 		ReleaseTupleDesc(tupdesc);
 
-		info->cmpFuncOid = getAMProc(BTREE_AM_OID, info->tupDesc->attrs[0]->atttypid);
-		info->hashFuncOid = getAMProc(HASH_AM_OID, info->tupDesc->attrs[0]->atttypid);
+		info->cmpFuncOid = getAMProc(BTREE_AM_OID,
+									 TupleDescAttr(info->tupDesc, 0)->atttypid);
+		info->hashFuncOid = getAMProc(HASH_AM_OID,
+									  TupleDescAttr(info->tupDesc, 0)->atttypid);
 	}
 	else
 	{
