@@ -16,7 +16,6 @@
 #include "utils/fmgroids.h"
 #include "utils/lsyscache.h"
 #include "utils/memutils.h"
-#include "utils/tqual.h"
 #include "utils/syscache.h"
 #include "utils/typcache.h"
 
@@ -28,6 +27,12 @@ PG_MODULE_MAGIC;
 #define SNAPSHOT SnapshotNow
 #endif
 
+# if (PG_VERSION_NUM >=120000)
+#include "catalog/pg_proc.h"
+#else
+#include "utils/tqual.h"
+#endif
+
 static Oid
 getDefaultOpclass(Oid amoid, Oid typid)
 {
@@ -36,6 +41,7 @@ getDefaultOpclass(Oid amoid, Oid typid)
 	HeapTuple	tuple;
 	Relation	heapRel;
 	Oid			opclassOid = InvalidOid;
+	Form_pg_proc form;
 
 	heapRel = heap_open(OperatorClassRelationId, AccessShareLock);
 
@@ -56,7 +62,14 @@ getDefaultOpclass(Oid amoid, Oid typid)
 		{
 			if ( OidIsValid(opclassOid) )
 				elog(ERROR, "Ambiguous opclass for type %u (access method %u)", typid, amoid); 
+
+			# if (PG_VERSION_NUM >=120000)
+		        form = (Form_pg_proc) GETSTRUCT(tuple);
+                        opclassOid = form->oid;
+			#else	
 			opclassOid = HeapTupleGetOid(tuple);
+			#endif
+
 		}
 	}
 
