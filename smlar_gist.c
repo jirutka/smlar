@@ -164,7 +164,9 @@ Array2HashedArray(ProcTypeInfo info, ArrayType *a)
 
 	ptr = GETARR(sign);
 	for(i=0;i<s->nelems;i++)
-		ptr[i] = DatumGetUInt32( FunctionCall1( &s->info->hashFunc, s->elems[i] ) );
+		ptr[i] = DatumGetUInt32(FunctionCall1Coll(&s->info->hashFunc,
+												  DEFAULT_COLLATION_OID,
+												  s->elems[i]));
 
 	/*
 	 * there is a collision of hash-function; len is always equal or less than
@@ -239,7 +241,11 @@ getHashedCache(void *cache)
 		getFmgrInfoHash(stat->info);
 		for(i=0;i<stat->nelems;i++)
 		{
-			uint32	hash = DatumGetUInt32( FunctionCall1( &stat->info->hashFunc, stat->elems[i].datum ) );
+			uint32	hash;
+
+			hash = DatumGetUInt32(FunctionCall1Coll(&stat->info->hashFunc,
+													DEFAULT_COLLATION_OID,
+													stat->elems[i].datum));
 			int		index = HASHVAL(hash);
 
 			stat->helems[i].hash = hash;
@@ -296,7 +302,9 @@ fillHashVal(void *cache, SimpleArray *a)
 	getFmgrInfoHash(a->info);
 
 	for(i=0;i<a->nelems;i++)
-		a->hash[i] = DatumGetUInt32( FunctionCall1( &a->info->hashFunc, a->elems[i] ) );
+		a->hash[i] = DatumGetUInt32(FunctionCall1Coll(&a->info->hashFunc,
+													  DEFAULT_COLLATION_OID,
+													  a->elems[i]));
 }
 
 

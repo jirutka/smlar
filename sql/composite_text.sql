@@ -1,3 +1,4 @@
+set extra_float_digits =0;
 SELECT set_smlar_limit(0.6);
 
 CREATE TYPE ctext AS (id text, w float4);

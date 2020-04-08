@@ -1,4 +1,5 @@
 CREATE EXTENSION smlar;
+set extra_float_digits =0;
 --sanity check
 SELECT 
 	opc.opcname, 

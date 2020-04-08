@@ -1,3 +1,4 @@
+set extra_float_digits =0;
 SELECT set_smlar_limit(0.8);
 
 DROP INDEX idx_test_int8;
