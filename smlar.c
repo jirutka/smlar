@@ -41,8 +41,9 @@ getDefaultOpclass(Oid amoid, Oid typid)
 	HeapTuple	tuple;
 	Relation	heapRel;
 	Oid			opclassOid = InvalidOid;
+	#if (PG_VERSION_NUM >=120000)
 	Form_pg_proc form;
-
+	#endif
 	heapRel = heap_open(OperatorClassRelationId, AccessShareLock);
 
 	ScanKeyInit(&skey,
@@ -63,7 +64,7 @@ getDefaultOpclass(Oid amoid, Oid typid)
 			if ( OidIsValid(opclassOid) )
 				elog(ERROR, "Ambiguous opclass for type %u (access method %u)", typid, amoid); 
 
-			# if (PG_VERSION_NUM >=120000)
+			#if (PG_VERSION_NUM >=120000)
 		        form = (Form_pg_proc) GETSTRUCT(tuple);
                         opclassOid = form->oid;
 			#else	
