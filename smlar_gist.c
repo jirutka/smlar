@@ -3,7 +3,11 @@
 #include "fmgr.h"
 #include "access/gist.h"
 #include "access/skey.h"
+#if PG_VERSION_NUM < 130000
+#include "access/tuptoaster.h"
+#else
 #include "access/heaptoast.h"
+#endif
 #include "utils/memutils.h"
 
 typedef struct SmlSign {

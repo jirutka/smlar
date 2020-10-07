@@ -5,7 +5,11 @@
 #include "fmgr.h"
 #include "access/gin.h"
 #include "access/skey.h"
+#if PG_VERSION_NUM < 130000
+#include "access/tuptoaster.h"
+#else
 #include "access/heaptoast.h"
+#endif
 
 PG_FUNCTION_INFO_V1(smlararrayextract);
 Datum smlararrayextract(PG_FUNCTION_ARGS);
