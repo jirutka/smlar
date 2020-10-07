@@ -3,7 +3,7 @@
 #include "fmgr.h"
 #include "access/gist.h"
 #include "access/skey.h"
-#include "access/tuptoaster.h"
+#include "access/heaptoast.h"
 #include "utils/memutils.h"
 
 typedef struct SmlSign {

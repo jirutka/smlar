@@ -5,7 +5,7 @@
 #include "fmgr.h"
 #include "access/gin.h"
 #include "access/skey.h"
-#include "access/tuptoaster.h"
+#include "access/heaptoast.h"
 
 PG_FUNCTION_INFO_V1(smlararrayextract);
 Datum smlararrayextract(PG_FUNCTION_ARGS);
