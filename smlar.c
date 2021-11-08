@@ -526,6 +526,7 @@ Array2SimpleArrayU(ProcTypeInfo info, ArrayType *a, void *cache)
 						{
 							case TF_LOG:
 								s->df[i] = (1.0 + log( s->df[i] ));
+								/* FALLTHROUGH */
 							case TF_N:
 								s->df[i] *= stat->idf;
 								break;
