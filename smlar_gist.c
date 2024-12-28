@@ -52,6 +52,10 @@ typedef char *BITVECP;
 
 #define GETENTRY(vec,pos) ((SmlSign *) DatumGetPointer((vec)->vector[(pos)].key))
 
+#ifndef Abs
+#define Abs(x)	abs(x)
+#endif
+
 /*
  * Fake IO
  */
@@ -430,7 +434,7 @@ Datum
 gsmlsign_decompress(PG_FUNCTION_ARGS)
 {
 	GISTENTRY	*entry = (GISTENTRY *) PG_GETARG_POINTER(0);
-	SmlSign		*key =  (SmlSign*)DatumGetPointer(PG_DETOAST_DATUM(entry->key));
+	SmlSign		*key =  (SmlSign*)PG_DETOAST_DATUM(entry->key);
 
 	if (key != (SmlSign *) DatumGetPointer(entry->key))
 	{
